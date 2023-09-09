@@ -32,9 +32,9 @@
     "@tscircuit/builder": "*",
     "react": "*",
     "react-dom": "*"
-    
   },
   "dependencies": {
-    "react-data-grid": "^7.0.0-beta.37"
+    "react-data-grid": "^7.0.0-beta.37",
+    "react-json-tree": "^0.18.0"
   }
 }

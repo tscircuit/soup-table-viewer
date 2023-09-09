@@ -1,8 +1,11 @@
-import React, { useReducer } from "react"
+import React, { useReducer, useState } from "react"
 import type { AnyElement } from "@tscircuit/builder"
 import ReactDataGrid, { Column } from "react-data-grid"
+import { JSONTree } from "react-json-tree"
 
 import { HeaderCell } from "./HeaderCell"
+import { ClickableText } from "./ClickableText"
+import Modal from "./Modal"
 
 type Filters = {
   component_type_filter?: "any" | "source/pcb" | "source/schematic" | string
@@ -12,8 +15,12 @@ type Filters = {
 }
 
 type CommonProps = { name?: string; type: string }
+type ModalState =
+  | { open: false; element?: any }
+  | { open: true; element: any; title: string }
 
 export const SoupTableViewer = ({ elements }: { elements: AnyElement[] }) => {
+  const [modal, setModal] = useState<ModalState>({ open: false })
   const [filters, setFilter] = useReducer(
     (s: Filters, a: Filters) => ({
       ...s,
@@ -46,6 +53,7 @@ export const SoupTableViewer = ({ elements }: { elements: AnyElement[] }) => {
       primary_id,
       other_ids,
       ...other_props,
+      _og_elm: e,
     }
   })
 
@@ -83,7 +91,26 @@ export const SoupTableViewer = ({ elements }: { elements: AnyElement[] }) => {
   })
 
   const columns: Column<any, any>[] = [
-    { key: "primary_id", name: "primary_id" },
+    {
+      key: "primary_id",
+      name: "primary_id",
+      renderCell: (p) => (
+        <div style={{ display: "flex" }}>
+          <ClickableText text={p.row.primary_id} onClick={() => {}} />
+          <span style={{ flexGrow: 1 }} />
+          <ClickableText
+            text="(JSON)"
+            onClick={() =>
+              setModal({
+                open: true,
+                element: p.row._og_elm,
+                title: p.row.primary_id,
+              })
+            }
+          ></ClickableText>
+        </div>
+      ),
+    },
     {
       key: "type",
       name: "type",
@@ -178,12 +205,27 @@ export const SoupTableViewer = ({ elements }: { elements: AnyElement[] }) => {
     })
 
   return (
-    <ReactDataGrid
-      className="rdg-dark"
-      style={{ height: 1000 }}
-      headerRowHeight={70}
-      columns={columns}
-      rows={elements4}
-    />
+    <div style={{ fontFamily: "monospace" }}>
+      <ReactDataGrid
+        className="rdg-dark"
+        style={{ height: 1000 }}
+        headerRowHeight={70}
+        columns={columns}
+        rows={elements4}
+      />
+      <Modal
+        open={modal.open}
+        onClose={() => setModal({ open: false })}
+        title={`${modal.open ? modal.title : ""}`}
+      >
+        <div style={{ backgroundColor: "#002B36", padding: 12 }}>
+          <JSONTree
+            shouldExpandNodeInitially={() => true}
+            hideRoot={true}
+            data={modal.element ?? {}}
+          />
+        </div>
+      </Modal>
+    </div>
   )
 }

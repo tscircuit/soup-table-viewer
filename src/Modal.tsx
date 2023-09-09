@@ -16,7 +16,7 @@ const Modal: React.FC<ModalProps> = ({ open, children, title, onClose }) => {
     left: 0,
     width: "100%",
     height: "100%",
-    backgroundColor: "rgba(0, 0, 0, 0.7)",
+    backgroundColor: "rgba(0, 0, 0, 0.4)",
     display: "flex",
     justifyContent: "center",
     alignItems: "center",
@@ -33,18 +33,26 @@ const Modal: React.FC<ModalProps> = ({ open, children, title, onClose }) => {
 
   const closeButtonStyle: React.CSSProperties = {
     position: "absolute",
-    top: "10px",
-    right: "10px",
+    top: "16px",
+    right: "16px",
     cursor: "pointer",
+    fontWeight: "bold",
+    fontSize: "28px",
   }
 
   return (
-    <div style={overlayStyle}>
-      <div style={modalStyle}>
+    <div style={overlayStyle} onClick={onClose}>
+      <div
+        style={modalStyle}
+        onClick={(e) => {
+          e.preventDefault()
+          e.stopPropagation()
+        }}
+      >
+        <h2 style={{ marginTop: 0, fontSize: 18 }}>{title}</h2>
         <span style={closeButtonStyle} onClick={onClose}>
-          X
+          &#10006;
         </span>
-        <h2>{title}</h2>
         {children}
       </div>
     </div>
