@@ -1,6 +1,6 @@
 import React from "react"
 import type { AnyElement } from "@tscircuit/builder"
-import ReactDataGrid from "react-data-grid"
+import ReactDataGrid, { Column } from "react-data-grid"
 import "react-data-grid/lib/styles.css"
 
 import { useState } from "react"
@@ -8,7 +8,33 @@ import { useState } from "react"
 export const SoupTableViewer = ({ elements }: { elements: AnyElement[] }) => {
   const element_types = [...new Set(elements.map((e) => e.type))]
 
-  const columns = [
+  // Process elements to separate primary and non-primary ids
+  const elements2 = elements.map((e) => {
+    const new_elm: any = {}
+
+    const primary_id = e[`${e.type}_id`]
+
+    const other_ids = Object.fromEntries(
+      Object.entries(e).filter(([k, v]) => {
+        if (k === `${e.type}_id`) return false
+        if (!k.endsWith("_id")) return false
+        return true
+      })
+    )
+
+    const other_props = Object.fromEntries(
+      Object.entries(e).filter(([k, v]) => !k.endsWith("_id"))
+    )
+
+    return {
+      primary_id,
+      other_ids,
+      ...other_props,
+    }
+  })
+
+  const columns: Column<any, any>[] = [
+    { key: "primary_id", name: "primary_id" },
     {
       key: "type",
       name: "type",
@@ -22,10 +48,24 @@ export const SoupTableViewer = ({ elements }: { elements: AnyElement[] }) => {
       //   </select>
       // ),
     },
-    ...element_types.map((et) => ({
-      key: et,
-      name: et,
-    })),
+    {
+      key: "name",
+      name: "name",
+    },
+    {
+      key: "other_ids",
+      name: "other_ids",
+      renderCell: (p) => (
+        <div style={{ width: 80 }}>
+          {Object.entries(p.row.other_ids).map(([other_id, v]: any) => (
+            <a style={{ marginRight: 4 }} href="#">
+              {v}
+            </a>
+          ))}
+        </div>
+      ),
+    },
+
     // ...Object.keys(elements[0])
     //   .filter((key) => key !== "type")
     //   .map((key) => ({
@@ -44,5 +84,5 @@ export const SoupTableViewer = ({ elements }: { elements: AnyElement[] }) => {
   //   })
   // })
 
-  return <ReactDataGrid columns={columns} rows={elements} />
+  return <ReactDataGrid columns={columns} rows={elements2} />
 }
