@@ -8,10 +8,16 @@ import { ClickableText } from "./ClickableText"
 import Modal from "./Modal"
 
 type Filters = {
-  component_type_filter?: "any" | "source/pcb" | "source/schematic" | string
+  component_type_filter?:
+    | "any"
+    | "source"
+    | "source/pcb"
+    | "source/schematic"
+    | string
   id_search?: string
   name_search?: string
   selector_search?: string
+  focused_id?: string
 }
 
 type CommonProps = { name?: string; type: string }
@@ -96,7 +102,12 @@ export const SoupTableViewer = ({ elements }: { elements: AnyElement[] }) => {
       name: "primary_id",
       renderCell: (p) => (
         <div style={{ display: "flex" }}>
-          <ClickableText text={p.row.primary_id} onClick={() => {}} />
+          <ClickableText
+            text={p.row.primary_id}
+            onClick={() =>
+              setFilter({ focused_id: p.row.primary_id, id_search: undefined })
+            }
+          />
           <span style={{ flexGrow: 1 }} />
           <ClickableText
             text="(JSON)"
@@ -109,6 +120,28 @@ export const SoupTableViewer = ({ elements }: { elements: AnyElement[] }) => {
             }
           ></ClickableText>
         </div>
+      ),
+      renderHeaderCell: (p) => (
+        <HeaderCell
+          {...p}
+          onTextChange={(v) => setFilter({ id_search: v })}
+          field={
+            !filters.focused_id
+              ? null
+              : () => (
+                  <div>
+                    focus:{" "}
+                    <span style={{ textDecoration: "underline" }}>
+                      {filters.focused_id}
+                    </span>
+                    <ClickableText
+                      text="(unfocus)"
+                      onClick={() => setFilter({ focused_id: undefined })}
+                    />
+                  </div>
+                )
+          }
+        />
       ),
     },
     {
@@ -125,6 +158,9 @@ export const SoupTableViewer = ({ elements }: { elements: AnyElement[] }) => {
             >
               <option key="any" value="any">
                 any
+              </option>
+              <option key="source" value="source">
+                source
               </option>
               <option key="source/pcb" value="source/pcb">
                 source/pcb
@@ -168,9 +204,10 @@ export const SoupTableViewer = ({ elements }: { elements: AnyElement[] }) => {
       renderCell: (p) => (
         <div style={{ width: 80 }}>
           {Object.entries(p.row.other_ids).map(([other_id, v]: any) => (
-            <a style={{ marginRight: 4 }} href="#">
-              {v}
-            </a>
+            <ClickableText
+              text={v}
+              onClick={() => setFilter({ focused_id: v })}
+            />
           ))}
         </div>
       ),
@@ -187,6 +224,9 @@ export const SoupTableViewer = ({ elements }: { elements: AnyElement[] }) => {
     .filter((e) => {
       if (!filters.component_type_filter) return true
       if (filters.component_type_filter === "any") return true
+      if (filters.component_type_filter === "source") {
+        return e.type.startsWith("source_")
+      }
       if (filters.component_type_filter === "source/pcb") {
         return e.type.startsWith("source_") || e.type.startsWith("pcb_")
       }
@@ -203,6 +243,15 @@ export const SoupTableViewer = ({ elements }: { elements: AnyElement[] }) => {
       if (!filters.id_search) return true
       return e.primary_id?.includes(filters.id_search)
     })
+    .filter((e) => {
+      if (!filters.focused_id) return true
+      if (e.primary_id === filters.focused_id) return true
+      if (Object.values(e.other_ids).includes(filters.focused_id)) return true
+      // TODO show parents
+      return false
+    })
+
+  // TODO sort when focused_id is set so that the focused_id appears first
 
   return (
     <div style={{ fontFamily: "monospace" }}>
