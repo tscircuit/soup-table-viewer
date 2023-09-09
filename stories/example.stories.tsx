@@ -1,4 +1,5 @@
 import React from "react"
+import { SoupTableViewer } from "../src"
 
 const example_soup = [
   {
@@ -1035,7 +1036,7 @@ const example_soup = [
   },
 ]
 
-export const Example = () => <div>hello world</div>
+export const Example = () => <SoupTableViewer elements={example_soup as any} />
 
 export default {
   title: "Example",
