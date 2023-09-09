@@ -1,11 +1,28 @@
-import React from "react"
+import React, { useReducer } from "react"
 import type { AnyElement } from "@tscircuit/builder"
 import ReactDataGrid, { Column } from "react-data-grid"
 import "react-data-grid/lib/styles.css"
 
-import { useState } from "react"
+import { HeaderCell } from "./HeaderCell"
+
+type Filters = {
+  component_type_filter?: "any" | "source/pcb" | "source/schematic" | string
+  id_search?: string
+  name_search?: string
+  selector_search?: string
+}
+
+type CommonProps = { name?: string; type: string }
 
 export const SoupTableViewer = ({ elements }: { elements: AnyElement[] }) => {
+  const [filters, setFilter] = useReducer(
+    (s: Filters, a: Filters) => ({
+      ...s,
+      ...a,
+    }),
+    {}
+  )
+
   const element_types = [...new Set(elements.map((e) => e.type))]
 
   // Process elements to separate primary and non-primary ids
@@ -22,9 +39,9 @@ export const SoupTableViewer = ({ elements }: { elements: AnyElement[] }) => {
       })
     )
 
-    const other_props = Object.fromEntries(
+    const other_props: CommonProps = Object.fromEntries(
       Object.entries(e).filter(([k, v]) => !k.endsWith("_id"))
-    )
+    ) as any
 
     return {
       primary_id,
@@ -74,28 +91,52 @@ export const SoupTableViewer = ({ elements }: { elements: AnyElement[] }) => {
       key: "type",
       name: "type",
       renderHeaderCell: (p) => (
-        <div style={{ lineHeight: 1.5, padding: 0 }}>
-          <div style={{ fontWeight: "bold" }}>{p.column.name}</div>
-          <hr />
-          <select
-          // onChange={(e) => p.onChange(e.target.value)}
-          >
-            {element_types.map((type) => (
-              <option key={type} value={type}>
-                {type}
+        <HeaderCell
+          {...p}
+          field={() => (
+            <select
+              onChange={(e) =>
+                setFilter({ component_type_filter: e.target.value })
+              }
+            >
+              <option key="any" value="any">
+                any
               </option>
-            ))}
-          </select>
-        </div>
+              <option key="source/pcb" value="source/pcb">
+                source/pcb
+              </option>
+              <option key="source/schematic" value="source/schematic">
+                source/schematic
+              </option>
+              {element_types.map((type) => (
+                <option key={type} value={type}>
+                  {type}
+                </option>
+              ))}
+            </select>
+          )}
+        />
       ),
     },
     {
       key: "name",
       name: "name",
+      renderHeaderCell: (p) => (
+        <HeaderCell
+          {...p}
+          onTextChange={(t) => setFilter({ name_search: t })}
+        />
+      ),
     },
     {
       key: "selector_path",
       name: "selector_path",
+      renderHeaderCell: (p) => (
+        <HeaderCell
+          {...p}
+          onTextChange={(t) => setFilter({ selector_search: t })}
+        />
+      ),
     },
     {
       key: "other_ids",
@@ -110,31 +151,42 @@ export const SoupTableViewer = ({ elements }: { elements: AnyElement[] }) => {
         </div>
       ),
     },
-
-    // ...Object.keys(elements[0])
-    //   .filter((key) => key !== "type")
-    //   .map((key) => ({
-    //     key,
-    //     name: key.charAt(0).toUpperCase() + key.slice(1),
-    //   })),
+    // TODO enable properties based on selected type e.g. center
+    // TODO introduce JSON viewer button
   ]
 
-  const [filters, setFilters] = useState({})
-
-  // const filteredRows = elements.filter((r) => {
-  //   return Object.keys(filters).every((key) => {
-  //     if (filters[key] === undefined || filters[key] === "") return true
-  //     if (r[key] === undefined) return false
-  //     return String(r[key]).includes(String(filters[key]))
-  //   })
-  // })
+  const elements4 = elements3
+    .filter((e) => {
+      if (!filters.name_search) return true
+      return e.name?.toLowerCase()?.includes(filters.name_search.toLowerCase())
+    })
+    .filter((e) => {
+      if (!filters.component_type_filter) return true
+      if (filters.component_type_filter === "any") return true
+      if (filters.component_type_filter === "source/pcb") {
+        return e.type.startsWith("source_") || e.type.startsWith("pcb_")
+      }
+      if (filters.component_type_filter === "source/schematic") {
+        return e.type.startsWith("source_") || e.type.startsWith("schematic_")
+      }
+      return e.type?.includes(filters.component_type_filter)
+    })
+    .filter((e) => {
+      if (!filters.selector_search) return true
+      return e.selector_path?.includes(filters.selector_search)
+    })
+    .filter((e) => {
+      if (!filters.id_search) return true
+      return e.primary_id?.includes(filters.id_search)
+    })
 
   return (
     <ReactDataGrid
+      className="rdg-dark"
       style={{ height: 1000 }}
       headerRowHeight={70}
       columns={columns}
-      rows={elements3}
+      rows={elements4}
     />
   )
 }
