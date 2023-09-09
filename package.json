@@ -1,6 +1,6 @@
 {
   "name": "@tscircuit/table-viewer",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "",
   "main": "dist/index.js",
   "repository": "git@github.com:tscircuit/table-viewer.git",
@@ -22,15 +22,19 @@
     "@storybook/react": "^7.4.0",
     "@storybook/react-vite": "^7.4.0",
     "@storybook/testing-library": "^0.2.0",
-    "@tscircuit/builder": "^1.2.18",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "storybook": "^7.4.0",
     "tsup": "^7.2.0",
     "typescript": "^5.2.2"
   },
+  "peerDependencies": {
+    "@tscircuit/builder": "*",
+    "react": "*",
+    "react-dom": "*"
+    
+  },
   "dependencies": {
-    "react-data-grid": "^7.0.0-beta.37",
-    "react-data-table": "^0.1.0"
+    "react-data-grid": "^7.0.0-beta.37"
   }
 }

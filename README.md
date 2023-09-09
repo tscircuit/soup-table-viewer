@@ -1,7 +1,7 @@
 # @tscircuit/table-viewer
 
 This table viewer allows inspection of "tscircuit soup elements", which is the
-output of tscircuit builder or and intermediate step of tscircuit react.
+output of tscircuit builder or an intermediate step of tscircuit react.
 
 You might use the table viewer to debug why a particular selector isn't working.
 
