@@ -62,12 +62,10 @@ export const SoupTableViewer = ({ elements }: { elements: AnyElement[] }) => {
 
       const parent = elements2.find(
         (p) =>
-          "type" in p &&
-          p.type === parent_type &&
-          p[parent_key] === e2[parent_key]
+          p.type === parent_type && p.primary_id === e2.other_ids[parent_key]
       )
 
-      if (!parent) return `.${e2.name}`
+      if (!parent) return `??? > .${e2.name}`
       // throw new Error(`Couldn't find specified parent: ${e2[parent_key]}`)
 
       if (!("name" in parent)) return `#${parent[parent_key]} > .${e2.name}`

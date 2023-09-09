@@ -822,7 +822,7 @@ const example_soup = [
   },
   {
     type: "pcb_trace",
-    pcb_trace_id: "schematic_trace_8",
+    pcb_trace_id: "schematic_trace_6",
     source_trace_id: "source_trace_0",
     route: [],
   },
@@ -861,7 +861,7 @@ const example_soup = [
   },
   {
     type: "pcb_trace",
-    pcb_trace_id: "schematic_trace_6",
+    pcb_trace_id: "schematic_trace_7",
     source_trace_id: "source_trace_1",
     route: [],
   },
@@ -916,7 +916,7 @@ const example_soup = [
   },
   {
     type: "pcb_trace",
-    pcb_trace_id: "schematic_trace_7",
+    pcb_trace_id: "schematic_trace_8",
     source_trace_id: "source_trace_2",
     route: [],
   },
