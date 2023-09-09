@@ -1,12 +1,14 @@
 {
-  "name": "soup-table-viewer",
-  "version": "1.0.0",
+  "name": "@tscircuit/table-viewer",
+  "version": "0.0.2",
   "description": "",
-  "main": "index.js",
+  "main": "dist/index.js",
+  "repository": "git@github.com:tscircuit/table-viewer.git",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "storybook": "storybook dev -p 6006",
-    "build-storybook": "storybook build"
+    "build-storybook": "storybook build",
+    "build": "tsup src/index.ts --dts --sourcemap"
   },
   "keywords": [],
   "author": "",
@@ -24,6 +26,7 @@
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "storybook": "^7.4.0",
+    "tsup": "^7.2.0",
     "typescript": "^5.2.2"
   },
   "dependencies": {

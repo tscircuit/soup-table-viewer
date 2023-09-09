@@ -1,7 +1,6 @@
 import React, { useReducer } from "react"
 import type { AnyElement } from "@tscircuit/builder"
 import ReactDataGrid, { Column } from "react-data-grid"
-import "react-data-grid/lib/styles.css"
 
 import { HeaderCell } from "./HeaderCell"
 

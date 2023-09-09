@@ -1,5 +1,6 @@
 import React from "react"
 import { SoupTableViewer } from "../src"
+import "react-data-grid/lib/styles.css"
 
 const example_soup = [
   {
