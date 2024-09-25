@@ -29,7 +29,6 @@
     "typescript": "^5.2.2"
   },
   "peerDependencies": {
-    "@tscircuit/builder": "*",
     "react": "*",
     "react-dom": "*"
   },

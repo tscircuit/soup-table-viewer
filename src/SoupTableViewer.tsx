@@ -1,5 +1,4 @@
 import React, { useReducer, useState } from "react"
-import type { AnyElement } from "@tscircuit/builder"
 import ReactDataGrid, { Column } from "react-data-grid"
 import { JSONTree } from "react-json-tree"
 
@@ -25,14 +24,14 @@ type ModalState =
   | { open: false; element?: any }
   | { open: true; element: any; title: string }
 
-export const SoupTableViewer = ({ elements }: { elements: AnyElement[] }) => {
+export const SoupTableViewer = ({ elements }: { elements: any[] }) => {
   const [modal, setModal] = useState<ModalState>({ open: false })
   const [filters, setFilter] = useReducer(
     (s: Filters, a: Filters) => ({
       ...s,
       ...a,
     }),
-    {}
+    {},
   )
 
   const element_types = [...new Set(elements.map((e) => e.type))]
@@ -48,11 +47,11 @@ export const SoupTableViewer = ({ elements }: { elements: AnyElement[] }) => {
         if (k === `${e.type}_id`) return false
         if (!k.endsWith("_id")) return false
         return true
-      })
+      }),
     )
 
     const other_props: CommonProps = Object.fromEntries(
-      Object.entries(e).filter(([k, v]) => !k.endsWith("_id"))
+      Object.entries(e).filter(([k, v]) => !k.endsWith("_id")),
     ) as any
 
     return {
@@ -68,14 +67,14 @@ export const SoupTableViewer = ({ elements }: { elements: AnyElement[] }) => {
 
     const getSelectorPath = (e2) => {
       const parent_key = Object.keys(e2.other_ids).find((k) =>
-        k.startsWith("source_")
+        k.startsWith("source_"),
       )
       if (!parent_key) return `.${e2.name}`
       const parent_type = parent_key.slice(0, -3) // trim "_id"
 
       const parent = elements2.find(
         (p) =>
-          p.type === parent_type && p.primary_id === e2.other_ids[parent_key]
+          p.type === parent_type && p.primary_id === e2.other_ids[parent_key],
       )
 
       if (!parent) return `??? > .${e2.name}`
