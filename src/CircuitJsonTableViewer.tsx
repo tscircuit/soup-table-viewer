@@ -1,9 +1,7 @@
+// CircuitJsonTableViewer.tsx
 import React, { useReducer, useState } from "react"
-import ReactDataGrid, { Column } from "react-data-grid"
-import { JSONTree } from "react-json-tree"
-
-import { HeaderCell } from "./HeaderCell"
 import { ClickableText } from "./ClickableText"
+import { HeaderCell } from "./HeaderCell"
 import Modal from "./Modal"
 
 type Filters = {
@@ -20,11 +18,34 @@ type Filters = {
 }
 
 type CommonProps = { name?: string; type: string }
-type ModalState =
-  | { open: false; element?: any }
-  | { open: true; element: any; title: string }
 
-export const SoupTableViewer = ({ elements }: { elements: any[] }) => {
+type ModalState =
+  | { open: false; element?: never }
+  | { open: true; element: Element; title: string }
+
+interface Element {
+  [key: string]: any
+  type: string
+  name?: string
+}
+
+interface ProcessedElement extends CommonProps {
+  primary_id: string
+  other_ids: { [key: string]: string }
+  selector_path?: string
+  _og_elm: Element
+}
+
+interface Column {
+  key: string
+  name: string
+  renderCell?: (row: ProcessedElement) => React.ReactNode
+  renderHeaderCell?: (col: Column) => React.ReactNode
+}
+
+export const CircuitJsonTableViewer: React.FC<{ elements: Element[] }> = ({
+  elements,
+}) => {
   const [modal, setModal] = useState<ModalState>({ open: false })
   const [filters, setFilter] = useReducer(
     (s: Filters, a: Filters) => ({
@@ -37,22 +58,20 @@ export const SoupTableViewer = ({ elements }: { elements: any[] }) => {
   const element_types = [...new Set(elements.map((e) => e.type))]
 
   // Process elements to separate primary and non-primary ids
-  const elements2 = elements.map((e) => {
-    const new_elm: any = {}
-
+  const elements2: ProcessedElement[] = elements.map((e) => {
     const primary_id = e[`${e.type}_id`]
 
     const other_ids = Object.fromEntries(
-      Object.entries(e).filter(([k, v]) => {
+      Object.entries(e).filter(([k]) => {
         if (k === `${e.type}_id`) return false
         if (!k.endsWith("_id")) return false
         return true
       }),
-    )
+    ) as { [key: string]: string }
 
     const other_props: CommonProps = Object.fromEntries(
-      Object.entries(e).filter(([k, v]) => !k.endsWith("_id")),
-    ) as any
+      Object.entries(e).filter(([k]) => !k.endsWith("_id")),
+    ) as CommonProps
 
     return {
       primary_id,
@@ -63,9 +82,9 @@ export const SoupTableViewer = ({ elements }: { elements: any[] }) => {
   })
 
   const elements3 = elements2.map((e) => {
-    let selector_path
+    let selector_path = ""
 
-    const getSelectorPath = (e2) => {
+    const getSelectorPath = (e2: ProcessedElement): string => {
       const parent_key = Object.keys(e2.other_ids).find((k) =>
         k.startsWith("source_"),
       )
@@ -78,9 +97,8 @@ export const SoupTableViewer = ({ elements }: { elements: any[] }) => {
       )
 
       if (!parent) return `??? > .${e2.name}`
-      // throw new Error(`Couldn't find specified parent: ${e2[parent_key]}`)
 
-      if (!("name" in parent)) return `#${parent[parent_key]} > .${e2.name}`
+      if (!("name" in parent)) return `#${parent.primary_id} > .${e2.name}`
 
       return `${getSelectorPath(parent)} > .${e2.name}`
     }
@@ -95,44 +113,46 @@ export const SoupTableViewer = ({ elements }: { elements: any[] }) => {
     }
   })
 
-  const columns: Column<any, any>[] = [
+  const columns: Column[] = [
     {
       key: "primary_id",
       name: "primary_id",
-      renderCell: (p) => (
-        <div style={{ display: "flex" }}>
+      renderCell: (row: ProcessedElement) => (
+        <div className="flex items-center">
           <ClickableText
-            text={p.row.primary_id}
+            text={row.primary_id}
             onClick={() =>
-              setFilter({ focused_id: p.row.primary_id, id_search: undefined })
+              setFilter({
+                focused_id: row.primary_id,
+                id_search: undefined,
+                selector_search: undefined,
+              })
             }
           />
-          <span style={{ flexGrow: 1 }} />
+          <span className="flex-grow" />
           <ClickableText
             text="(JSON)"
             onClick={() =>
               setModal({
                 open: true,
-                element: p.row._og_elm,
-                title: p.row.primary_id,
+                element: row._og_elm,
+                title: row.primary_id,
               })
             }
-          ></ClickableText>
+          />
         </div>
       ),
-      renderHeaderCell: (p) => (
+      renderHeaderCell: (col: Column) => (
         <HeaderCell
-          {...p}
+          column={col}
           onTextChange={(v) => setFilter({ id_search: v })}
           field={
             !filters.focused_id
-              ? null
+              ? undefined
               : () => (
                   <div>
-                    focus:{" "}
-                    <span style={{ textDecoration: "underline" }}>
-                      {filters.focused_id}
-                    </span>
+                    Focus:{" "}
+                    <span className="underline">{filters.focused_id}</span>
                     <ClickableText
                       text="(unfocus)"
                       onClick={() => setFilter({ focused_id: undefined })}
@@ -146,14 +166,15 @@ export const SoupTableViewer = ({ elements }: { elements: any[] }) => {
     {
       key: "type",
       name: "type",
-      renderHeaderCell: (p) => (
+      renderHeaderCell: (col: Column) => (
         <HeaderCell
-          {...p}
+          column={col}
           field={() => (
             <select
               onChange={(e) =>
                 setFilter({ component_type_filter: e.target.value })
               }
+              className="border rounded p-1 w-full"
             >
               <option key="any" value="any">
                 any
@@ -180,9 +201,9 @@ export const SoupTableViewer = ({ elements }: { elements: any[] }) => {
     {
       key: "name",
       name: "name",
-      renderHeaderCell: (p) => (
+      renderHeaderCell: (col: Column) => (
         <HeaderCell
-          {...p}
+          column={col}
           onTextChange={(t) => setFilter({ name_search: t })}
         />
       ),
@@ -190,9 +211,9 @@ export const SoupTableViewer = ({ elements }: { elements: any[] }) => {
     {
       key: "selector_path",
       name: "selector_path",
-      renderHeaderCell: (p) => (
+      renderHeaderCell: (col: Column) => (
         <HeaderCell
-          {...p}
+          column={col}
           onTextChange={(t) => setFilter({ selector_search: t })}
         />
       ),
@@ -200,10 +221,11 @@ export const SoupTableViewer = ({ elements }: { elements: any[] }) => {
     {
       key: "other_ids",
       name: "other_ids",
-      renderCell: (p) => (
-        <div style={{ width: 80 }}>
-          {Object.entries(p.row.other_ids).map(([other_id, v]: any) => (
+      renderCell: (row: ProcessedElement) => (
+        <div className="space-x-2">
+          {Object.entries(row.other_ids).map(([other_id, v]) => (
             <ClickableText
+              key={v}
               text={v}
               onClick={() => setFilter({ focused_id: v })}
             />
@@ -211,8 +233,6 @@ export const SoupTableViewer = ({ elements }: { elements: any[] }) => {
         </div>
       ),
     },
-    // TODO enable properties based on selected type e.g. center
-    // TODO introduce JSON viewer button
   ]
 
   const elements4 = elements3
@@ -236,7 +256,10 @@ export const SoupTableViewer = ({ elements }: { elements: any[] }) => {
     })
     .filter((e) => {
       if (!filters.selector_search) return true
-      return e.selector_path?.includes(filters.selector_search)
+      const parts = filters.selector_search
+        .split(" ")
+        .filter((p) => p.length > 0)
+      return parts.every((part) => e.selector_path?.includes(part))
     })
     .filter((e) => {
       if (!filters.id_search) return true
@@ -246,32 +269,46 @@ export const SoupTableViewer = ({ elements }: { elements: any[] }) => {
       if (!filters.focused_id) return true
       if (e.primary_id === filters.focused_id) return true
       if (Object.values(e.other_ids).includes(filters.focused_id)) return true
-      // TODO show parents
       return false
     })
 
-  // TODO sort when focused_id is set so that the focused_id appears first
-
   return (
-    <div style={{ fontFamily: "monospace" }}>
-      <ReactDataGrid
-        className="rdg-dark"
-        style={{ height: 1000 }}
-        headerRowHeight={70}
-        columns={columns}
-        rows={elements4}
-      />
+    <div className="font-mono text-xs">
+      <div className="overflow-x-auto">
+        <table className="table-auto w-full text-left">
+          <thead>
+            <tr>
+              {columns.map((col) => (
+                <th key={col.key} className="px-4 py-2 border-b">
+                  {col.renderHeaderCell ? col.renderHeaderCell(col) : col.name}
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {elements4.map((row, rowIndex) => (
+              <tr key={rowIndex} className="hover:bg-gray-100">
+                {columns.map((col) => (
+                  <td key={col.key} className="px-4 py-2 border-b">
+                    {col.renderCell
+                      ? col.renderCell(row)
+                      : (row as any)[col.key]}
+                  </td>
+                ))}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
       <Modal
         open={modal.open}
         onClose={() => setModal({ open: false })}
-        title={`${modal.open ? modal.title : ""}`}
+        title={modal.open ? modal.title : ""}
       >
-        <div style={{ backgroundColor: "#002B36", padding: 12 }}>
-          <JSONTree
-            shouldExpandNodeInitially={() => true}
-            hideRoot={true}
-            data={modal.element ?? {}}
-          />
+        <div className="bg-gray-800 p-3 text-white rounded">
+          <pre className="whitespace-pre-wrap">
+            {modal.open ? JSON.stringify(modal.element, null, 2) : ""}
+          </pre>
         </div>
       </Modal>
     </div>

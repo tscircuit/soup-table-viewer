@@ -1,13 +1,18 @@
-export const ClickableText = ({ text, onClick }) => {
+// ClickableText.tsx
+import React from "react"
+
+interface ClickableTextProps {
+  text: string
+  onClick: () => void
+}
+
+export const ClickableText: React.FC<ClickableTextProps> = ({
+  text,
+  onClick,
+}) => {
   return (
     <span
-      style={{
-        cursor: "pointer",
-        textDecoration: "underline",
-        color: "#b3e5fc",
-        marginLeft: 8,
-        marginRight: 8,
-      }}
+      className="cursor-pointer underline text-blue-300 mx-2"
       onClick={onClick}
     >
       {text}

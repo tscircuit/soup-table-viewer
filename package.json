@@ -1,14 +1,14 @@
 {
   "name": "@tscircuit/table-viewer",
-  "version": "0.0.6",
+  "version": "0.0.9",
   "description": "",
-  "main": "dist/index.js",
+  "main": "dist/index.mjs",
   "repository": "git@github.com:tscircuit/table-viewer.git",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "storybook": "storybook dev -p 6006",
     "build-storybook": "storybook build",
-    "build": "tsup src/index.ts --dts --sourcemap"
+    "build": "tsup src/index.tsx --format esm --dts --sourcemap"
   },
   "keywords": [],
   "author": "",
@@ -25,15 +25,12 @@
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "storybook": "^7.4.0",
-    "tsup": "^7.2.0",
+    "tsup": "^8.3.0",
     "typescript": "^5.2.2"
   },
   "peerDependencies": {
     "react": "*",
     "react-dom": "*"
   },
-  "dependencies": {
-    "react-data-grid": "^7.0.0-beta.37",
-    "react-json-tree": "^0.18.0"
-  }
+  "dependencies": {}
 }

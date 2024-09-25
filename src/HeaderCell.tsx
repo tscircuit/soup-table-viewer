@@ -1,15 +1,21 @@
+// HeaderCell.tsx
 import React from "react"
 
-export const HeaderCell = (p) => {
+interface HeaderCellProps {
+  column: { name: string }
+  field?: () => React.ReactNode
+  onTextChange?: (value: string) => void
+}
+
+export const HeaderCell: React.FC<HeaderCellProps> = (p) => {
   return (
-    <div style={{ lineHeight: 1.5 }}>
-      <div style={{ paddingTop: 8, paddingBottom: 8, fontWeight: "bold" }}>
-        {p.column.name}
-      </div>
+    <div className="leading-5">
+      <div className="py-2 font-bold">{p.column.name}</div>
       <div>
         {p.field?.() ?? (
           <input
             type="text"
+            className="border rounded p-1 w-full"
             onChange={(e) => {
               p.onTextChange?.(e.target.value)
             }}
